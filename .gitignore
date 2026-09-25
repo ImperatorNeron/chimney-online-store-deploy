@@ -1,0 +1,10 @@
+# Real env files with secrets / local values — NEVER commit these.
+# Only the *.example variants are tracked.
+.env
+.env.build
+.env.local
+.env.app-only
+*.local
+
+# OS junk
+.DS_Store

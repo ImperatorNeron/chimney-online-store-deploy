@@ -1,0 +1,50 @@
+# -----------------------------------------------------------------------------
+# SCENARIO 1 — FULLY LOCAL.
+# Brings up BOTH:
+#   - db  : a local Postgres 17 (with pg_trgm), data persisted in a volume
+#   - app : the combined image (frontend + backend + nginx) on :8080
+#
+# Everything runs locally with local creds. Run with:
+#     ./run-local.sh
+# (which builds the image, then `docker compose -f this --env-file .env.local up`)
+# -----------------------------------------------------------------------------
+services:
+  db:
+    image: postgres:17rc1-alpine
+    command: >
+      sh -c '
+      apk add --no-cache postgresql-contrib &&
+      docker-entrypoint.sh postgres
+      '
+    environment:
+      POSTGRES_DB: ${APP_CONFIG__DATABASE__db_name}
+      POSTGRES_USER: ${APP_CONFIG__DATABASE__user}
+      POSTGRES_PASSWORD: ${APP_CONFIG__DATABASE__password}
+    volumes:
+      - chimney_local_pg:/var/lib/postgresql/data
+      - ../chimney-online-store-backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "${APP_CONFIG__DATABASE__external_port:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_CONFIG__DATABASE__user}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ${IMAGE:-chimney-app}:${TAG:-local}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.local
+    # Certificates are NOT baked into the image — mount them at runtime.
+    volumes:
+      - ../chimney-online-store-backend/app/certificates/private.pem:/app/backend/app/certificates/private.pem:ro
+      - ../chimney-online-store-backend/app/certificates/public.pem:/app/backend/app/certificates/public.pem:ro
+    restart: unless-stopped
+
+volumes:
+  chimney_local_pg:

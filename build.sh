@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# -----------------------------------------------------------------------------
+# Build the combined frontend+backend image.
+# Must run with the build context = the parent dir containing BOTH repos.
+# This script figures that out automatically (parent of chimney-deploy/).
+#
+# Usage:
+#   ./build.sh                      # builds chimney-app:local with defaults
+#   IMAGE=myname/chimney-app TAG=v1 ./build.sh
+#   ./build.sh --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.com ...
+#
+# NEXT_PUBLIC_* are baked at build time. For a real deploy, pass your public
+# site URL etc. via extra --build-arg flags (see .env.build.example for the list).
+# -----------------------------------------------------------------------------
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONTEXT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+IMAGE="${IMAGE:-chimney-app}"
+TAG="${TAG:-local}"
+
+# Collect build-args. NEXT_PUBLIC_* are baked into the browser bundle at build
+# time, so they MUST be passed here (not at `docker run`). If a .env.build file
+# exists next to this script, every KEY=VALUE line is turned into a --build-arg
+# automatically, so you keep all frontend build values in one place.
+BUILD_ARGS=()
+BUILD_ENV_FILE="$SCRIPT_DIR/.env.build"
+if [[ -f "$BUILD_ENV_FILE" ]]; then
+    echo "Build args    : loading from $BUILD_ENV_FILE"
+    while IFS= read -r line; do
+        # skip blanks and comments
+        [[ -z "${line// }" || "${line#\#}" != "$line" ]] && continue
+        BUILD_ARGS+=(--build-arg "$line")
+    done < "$BUILD_ENV_FILE"
+fi
+
+echo "Build context : $CONTEXT_DIR"
+echo "Dockerfile    : $SCRIPT_DIR/Dockerfile"
+echo "Image         : ${IMAGE}:${TAG}"
+echo
+
+docker build \
+    -f "$SCRIPT_DIR/Dockerfile" \
+    -t "${IMAGE}:${TAG}" \
+    "${BUILD_ARGS[@]}" \
+    "$@" \
+    "$CONTEXT_DIR"
+
+echo
+echo "Done. Run one of the scenarios:"
+echo "  ./run-local.sh       # app + local DB (fully local)"
+echo "  ./run-app-only.sh    # app + remote DB/bucket"

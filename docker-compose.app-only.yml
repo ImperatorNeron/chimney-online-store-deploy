@@ -1,0 +1,25 @@
+# -----------------------------------------------------------------------------
+# SCENARIO 2 — APP LOCAL, but using EXTERNAL (prod) DB + bucket creds.
+# Brings up ONLY the app on :8080. NO database container is started — the app
+# connects to whatever DB/bucket you put in .env.app-only (e.g. Supabase/Neon).
+#
+# Run with:
+#     ./run-app-only.sh
+# (builds the image, then `docker compose -f this --env-file .env.app-only up`)
+#
+# extra_hosts lets the container reach a DB published on your host machine too,
+# in case you point APP_CONFIG__DATABASE__host=host.docker.internal.
+# -----------------------------------------------------------------------------
+services:
+  app:
+    image: ${IMAGE:-chimney-app}:${TAG:-local}
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.app-only
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../chimney-online-store-backend/app/certificates/private.pem:/app/backend/app/certificates/private.pem:ro
+      - ../chimney-online-store-backend/app/certificates/public.pem:/app/backend/app/certificates/public.pem:ro
+    restart: unless-stopped
