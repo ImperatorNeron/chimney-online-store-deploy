@@ -1,0 +1,21 @@
+# NOTE: build.sh builds with the build context set to the PARENT dir (/Side),
+# so the effective .dockerignore for our combined build is /Side/.dockerignore.
+# This file protects against building with chimney-deploy/ as the context.
+
+.git
+.gitignore
+.idea
+.vscode
+
+# Secrets & envs — provided at runtime, never in the image
+.env
+.env.*
+!.env.*.example
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+**/*.pfx
+
+*.local
+.DS_Store

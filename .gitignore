@@ -6,5 +6,12 @@
 .env.app-only
 *.local
 
+# Secrets / keys (defense-in-depth: never commit private keys or certs)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
 # OS junk
 .DS_Store
