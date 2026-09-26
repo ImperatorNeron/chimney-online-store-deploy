@@ -36,6 +36,7 @@ exec gunicorn \
     -w "$WEB_CONCURRENCY" \
     -k uvicorn.workers.UvicornWorker \
     --bind "$HOST:$PORT" \
+    --forwarded-allow-ips "*" \
     --access-logfile - \
     --error-logfile - \
     "app.main:create_app()"
