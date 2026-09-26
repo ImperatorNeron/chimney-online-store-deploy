@@ -28,10 +28,17 @@ BUILD_ARGS=()
 BUILD_ENV_FILE="$SCRIPT_DIR/.env.build"
 if [[ -f "$BUILD_ENV_FILE" ]]; then
     echo "Build args    : loading from $BUILD_ENV_FILE"
-    while IFS= read -r line; do
-        # skip blanks and comments
-        [[ -z "${line// }" || "${line#\#}" != "$line" ]] && continue
+    # `|| [[ -n "$line" ]]` => also process the LAST line if it has no trailing
+    # newline. Strip CR (CRLF files), surrounding whitespace, and skip
+    # blanks/comments. This prevents CRLF from injecting "\r" into NEXT_PUBLIC_*
+    # (which corrupted media URLs) or dropping vars entirely.
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="${line%$'\r'}"                 # drop trailing CR
+        line="${line#"${line%%[![:space:]]*}"}"  # ltrim
+        line="${line%"${line##*[![:space:]]}"}"   # rtrim
+        [[ -z "$line" || "${line#\#}" != "$line" ]] && continue
         BUILD_ARGS+=(--build-arg "$line")
+        echo "  build-arg   : ${line%%=*}"   # log KEY only (not the value)
     done < "$BUILD_ENV_FILE"
 fi
 
