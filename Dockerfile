@@ -7,11 +7,11 @@
 #   /Side/
 #     ├── chimney-online-store-frontend/
 #     ├── chimney-online-store-backend/
-#     └── chimney-deploy/            <- this Dockerfile lives here
+#     └── chimney-online-store-deploy/            <- this Dockerfile lives here
 #
 # Build (from /Side):
-#   docker build -f chimney-deploy/Dockerfile -t chimney-app:local .
-# Or just use chimney-deploy/build.sh which sets the context for you.
+#   docker build -f chimney-online-store-deploy/Dockerfile -t chimney-app:local .
+# Or just use chimney-online-store-deploy/build.sh which sets the context for you.
 # =============================================================================
 
 
@@ -114,7 +114,7 @@ COPY --from=backend-builder /usr/local/bin /usr/local/bin
 # Backend source (includes app/certificates/*.pem, alembic.ini, migrations)
 COPY chimney-online-store-backend/ /app/backend/
 # Backend startup script (migrations + gunicorn)
-COPY chimney-deploy/start-backend.sh /app/backend/start-backend.sh
+COPY chimney-online-store-deploy/start-backend.sh /app/backend/start-backend.sh
 RUN chmod +x /app/backend/start-backend.sh
 
 # --- Frontend ---
@@ -122,8 +122,8 @@ RUN chmod +x /app/backend/start-backend.sh
 COPY --from=frontend-builder /fe /app/frontend/
 
 # --- Process/reverse-proxy config ---
-COPY chimney-deploy/nginx.conf /etc/nginx/nginx.conf
-COPY chimney-deploy/supervisord.conf /etc/supervisord.conf
+COPY chimney-online-store-deploy/nginx.conf /etc/nginx/nginx.conf
+COPY chimney-online-store-deploy/supervisord.conf /etc/supervisord.conf
 
 # nginx runtime dirs
 RUN mkdir -p /run/nginx

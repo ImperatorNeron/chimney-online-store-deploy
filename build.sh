@@ -40,12 +40,15 @@ echo "Dockerfile    : $SCRIPT_DIR/Dockerfile"
 echo "Image         : ${IMAGE}:${TAG}"
 echo
 
+DOCKERFILE_WIN="$(cygpath -w "$SCRIPT_DIR/Dockerfile" 2>/dev/null || echo "$SCRIPT_DIR/Dockerfile")"
+CONTEXT_WIN="$(cygpath -w "$CONTEXT_DIR" 2>/dev/null || echo "$CONTEXT_DIR")"
+
 docker build \
-    -f "$SCRIPT_DIR/Dockerfile" \
+    -f "$DOCKERFILE_WIN" \
     -t "${IMAGE}:${TAG}" \
     "${BUILD_ARGS[@]}" \
     "$@" \
-    "$CONTEXT_DIR"
+    "$CONTEXT_WIN"
 
 echo
 echo "Done. Run one of the scenarios:"
