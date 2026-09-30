@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # SCENARIO 2 — APP LOCAL, but using EXTERNAL (prod) DB + bucket creds.
 # Brings up ONLY the app on :8080. NO database container is started — the app
-# connects to whatever DB/bucket you put in .env.app-only (e.g. Supabase/Neon).
+# connects to whatever DB/bucket you put in .env.app-only (e.g. Neon / Railway).
 #
 # Run with:
 #     ./run-app-only.sh

@@ -116,7 +116,7 @@ they are compiled into the client bundle. That's fine: they are not secrets.
   - `APP_CONFIG__AUTH_JWT__private_key_path=/path/to/private.pem`
   - `APP_CONFIG__AUTH_JWT__public_key_path=/path/to/public.pem`
   (or mount them at the default `app/certificates/{private,public}.pem`).
-- **All runtime secrets go in Koyeb env** (DB password, Supabase key), never in
+- **All runtime secrets go in the host env** (DB password, storage keys), never in
   the image or git.
 - In `prod` the backend automatically sets the refresh cookie `Secure` +
   `HttpOnly`, with `SameSite=Lax`. The access token lives only in memory
@@ -140,10 +140,10 @@ For a real deploy, bake your public URLs:
 IMAGE=youruser/chimney-app TAG=v1 ./build.sh \
   --build-arg NEXT_PUBLIC_SITE_URL=https://shop.example.com \
   --build-arg NEXT_PUBLIC_API_URL=https://shop.example.com/api/v1 \
-  --build-arg NEXT_PUBLIC_MEDIA_URL=https://YOUR_PROJECT.supabase.co/storage/v1/object/public/YOUR_BUCKET \
+  --build-arg NEXT_PUBLIC_MEDIA_URL=/media \
   --build-arg NEXT_PUBLIC_MEDIA_SCHEMA=https \
-  --build-arg NEXT_PUBLIC_MEDIA_HOST=YOUR_PROJECT.supabase.co \
-  --build-arg NEXT_PUBLIC_MEDIA_PATH=/storage/v1/object/public/YOUR_BUCKET
+  --build-arg NEXT_PUBLIC_MEDIA_HOST=shop.example.com \
+  --build-arg NEXT_PUBLIC_MEDIA_PATH=/media
 ```
 
 > Note: `NEXT_PUBLIC_API_URL` must be an **absolute** URL that resolves from
@@ -162,7 +162,7 @@ Use the run scenarios above:
 Open http://localhost:8080.
 
 In production you won't use the bundled Postgres — point `APP_CONFIG__DATABASE__*`
-at your managed DB (Railway / Supabase / Neon / provider).
+at your managed DB (Railway / Neon / provider).
 
 ## Push (when ready)
 
@@ -239,12 +239,6 @@ APP_CONFIG__S3__access_key_id=<ACCESS_KEY_ID>
 APP_CONFIG__S3__secret_access_key=<SECRET_ACCESS_KEY>
 APP_CONFIG__S3__bucket=<BUCKET>          # the unique S3 name, NOT the display name
 APP_CONFIG__S3__region=auto
-
-# Supabase client is still built at startup — a NON-EMPTY placeholder is enough
-# when STORAGE_BACKEND=s3 (uploads/serves go through S3, not Supabase):
-APP_CONFIG__BUCKET__supabase_url=https://placeholder.supabase.co
-APP_CONFIG__BUCKET__supabase_key=placeholder
-APP_CONFIG__BUCKET__name=uploads
 ```
 
 Build-time (baked into the image, set as `--build-arg` / in `.env.build`):
